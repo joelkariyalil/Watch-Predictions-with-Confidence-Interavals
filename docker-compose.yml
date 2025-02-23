@@ -19,7 +19,7 @@ services:
   chatgpt_service:
     build: ./chatgpt_service
     ports:
-      - "5001:5001"
+      - "5000:5000"
     env_file:
       - .env
     environment:
