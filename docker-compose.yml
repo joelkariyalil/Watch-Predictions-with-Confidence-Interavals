@@ -1,0 +1,70 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_HOST=redis
+      - ML_MODEL_HOST=ml_model
+      - VECTOR_DB_HOST=vector_db
+      - CHATGPT_SERVICE_HOST=chatgpt_service
+    depends_on:
+      - redis
+      - ml_model
+      - vector_db
+      - chatgpt_service
+    networks:
+      - app_network
+
+  chatgpt_service:
+    build: ./chatgpt_service
+    ports:
+      - "5001:5001"
+    env_file:
+      - .env
+    environment:
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
+    networks:
+      - app_network
+
+
+  redis:
+    image: "redis:latest"
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app_network
+
+  ml_model:
+    build: ./ml_model
+    ports:
+      - "6000:6000"
+    environment:
+      - REDIS_HOST=redis
+      - VECTOR_DB_HOST=vector_db
+    depends_on:
+      - redis
+      - vector_db
+    networks:
+      - app_network
+
+  vector_db:
+    image: "qdrant/qdrant"
+    ports:
+      - "6333:6333"
+    volumes:
+      - vector_db_data:/qdrant/storage
+    networks:
+      - app_network
+
+volumes:
+  redis_data:
+  vector_db_data:
+
+networks:
+  app_network:
+    driver: bridge
